@@ -1,13 +1,15 @@
+import server.BooleanSearchEngine;
+import server.Server;
+
 import java.io.File;
-import java.util.Arrays;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        BooleanSearchEngine engine = new BooleanSearchEngine(new File("pdfs"));
-        System.out.println(engine.search("бизнес"));
+    static int port = 8989;
+    static String pdfRepo = "pdfs";
 
-        // здесь создайте сервер, который отвечал бы на нужные запросы
-        // слушать он должен порт 8989
-        // отвечать на запросы /{word} -> возвращённое значение метода search(word) в JSON-формате
+    public static void main(String[] args) throws Exception {
+        BooleanSearchEngine booleanSearchEngine = new BooleanSearchEngine(new File(pdfRepo));
+        Server server = new Server(port, booleanSearchEngine);
+        server.start();
     }
 }
