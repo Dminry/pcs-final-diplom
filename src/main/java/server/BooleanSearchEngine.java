@@ -4,10 +4,12 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.lang.System.out;
 
 public class BooleanSearchEngine implements SearchEngine {
     private Map<String, List<PageEntry>> wordsStatistics = new HashMap<>();
@@ -22,15 +24,15 @@ public class BooleanSearchEngine implements SearchEngine {
                 var page = doc.getPage(i);
                 var text = PdfTextExtractor.getTextFromPage(page);
                 var words = text.split("\\P{IsAlphabetic}+");
-                Map<String, Integer> freqsInOnePage = new HashMap<>();
+                Map<String, Integer> inOnePage = new HashMap<>();
                 for (String word : words) {
                     if (word.isEmpty()) {
                         continue;
                     }
                     word = word.toLowerCase();
-                    freqsInOnePage.put(word, freqsInOnePage.getOrDefault(word, 0) + 1);
+                    inOnePage.put(word, inOnePage.getOrDefault(word, 0) + 1);
                 }
-                freqsInOnePage.forEach((word, freq) -> {
+                inOnePage.forEach((word, freq) -> {
                             if (!wordsStatistics.containsKey(word)) {
                                 List<PageEntry> initialList = new ArrayList<>();
                                 initialList.add(new PageEntry(pdfName, pageNumber, freq));
@@ -48,17 +50,17 @@ public class BooleanSearchEngine implements SearchEngine {
 
     @Override
     public List<PageEntry> search(String words) throws NullPointerException {
-        String[] splittedWords = words.split(" ");
-        if (splittedWords.length == 1) {
-            List<PageEntry> pageEntryList = wordsStatistics.get(words.toLowerCase());
-            if (pageEntryList == null) {
-                throw new NullPointerException("Вы не указали слово для поиска!");
+        String[] splitWords = words.split(" ");
+        if (splitWords.length == 1) {
+            List<PageEntry> pageEntryList = wordsStatistics.getOrDefault(words.toLowerCase(), new ArrayList<>());
+            if (pageEntryList.isEmpty()) {
+                out.println("Такого слова в файлах нет ");
             }
             Collections.sort(pageEntryList);
             return pageEntryList;
-        } else {
-            List<String> wordsForSearch = Arrays.asList(splittedWords);
 
+        } else {
+            List<String> wordsForSearch = Arrays.asList(splitWords);
             List<String> filteredWordsForSearch = wordsForSearch.stream()
                     .collect(Collectors.toList());
             Map<PdfPage, Integer> dictionary = new HashMap<>();
